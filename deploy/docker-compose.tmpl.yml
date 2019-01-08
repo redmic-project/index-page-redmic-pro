@@ -1,7 +1,7 @@
 version: '3.5'
 
 services:
-  redmic-dev:
+  redmic-pro:
     image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
     networks:
       - traefik-net
