@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  redmic-dev:
+    image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    networks:
+      - traefik-net
+    healthcheck:
+      test: wget --spider http://localhost:${SITE_PORT}
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        traefik.frontend.rule: Host:${SITE_SUBDOMAIN}.${PUBLIC_HOSTNAME}
+        traefik.backend: ${SITE_NAME}
+        traefik.port: "${SITE_PORT}"
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        delay: 10s
+        window: 30s
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+        reservations:
+          memory: 52M
+
+networks:
+  traefik-net:
+    name: ${TRAEFIK_NET_NAME:-traefik-net}
+    external: true
