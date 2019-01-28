@@ -71,16 +71,12 @@ container-scanning:
 
 deploy-development:
   stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy
-  variables:
-    COMPOSE_FILE: docker-compose.tmpl.yml:docker-compose.dev.yml
+  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
   script:
-    - >
-      deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
+    - deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
   environment:
-    name: dev
-    url: https://index.${PRO_PUBLIC_HOSTNAME}
+    name: pro
+    url: https://index.${PUBLIC_HOSTNAME}
   only:
     - branches
   except:
@@ -89,15 +85,11 @@ deploy-development:
 
 deploy-stable:
   stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy
-  variables:
-    COMPOSE_FILE: docker-compose.tmpl.yml:docker-compose.prod.yml
+  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
   script:
-    - >
-      deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} COMPOSE_FILE=${COMPOSE_FILE}
-      PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
+    - deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
   environment:
     name: pro
-    url: https://index.${PRO_PUBLIC_HOSTNAME}
+    url: https://index.${PUBLIC_HOSTNAME}
   only:
     - master
