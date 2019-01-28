@@ -83,5 +83,15 @@ var config = {
 		"img": "kibana.png",
 		"title": "Kibana",
 		"description": "Visualizador y gestor de Elasticsearch"
+	},{
+		"subdomain": "nifi",
+		"img": "nifi.png",
+		"title": "Apache NiFi",
+		"description": "Plataforma de procesamiento y distribución de datos"
+	},{
+		"subdomain": "static",
+		"img": "static.png",
+		"title": "Static pages",
+		"description": "Páginas web estáticas, usadas para mostrar en caso de mantenimiento, error, etc."
 	}]
 };
