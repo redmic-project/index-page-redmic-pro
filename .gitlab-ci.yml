@@ -27,7 +27,7 @@ stages:
     DD_IMAGE_TAG: ${CI_COMMIT_SHA}
     DD_PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
   environment:
-    name: dev
+    name: pro
     url: https://index.${PRO_PUBLIC_HOSTNAME}
 
 deploy-support-branch-production:
