@@ -1,95 +1,51 @@
-image: docker:stable
+include:
+  - project: 'redmic-project/gitlab-ci-templates'
+    ref: master
+    file: '/packaging.yml'
+  - project: 'redmic-project/gitlab-ci-templates'
+    ref: master
+    file: '/_deployment.yml'
 
 stages:
   - package
   - test-package
   - deploy
 
-services:
-  - docker:dind
-
-variables:
-  DOCKER_DRIVER: overlay2
-  SSH_REMOTE: ${PRO_SSH_REMOTE}
-  STATUS_CHECK_DELAY: 60
-  STACK: index
-  SERVICES_TO_CHECK: index_${CI_PROJECT_NAME}
-  IMAGE_NAME: ${CI_REGISTRY_IMAGE}
-  IMAGE_TAG: ${CI_COMMIT_SHA}
-  PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
-
-docker-build-development:
-  stage: package
+.docker-operations-build:
   variables:
-    PARENT_IMAGE_NAME: registry.gitlab.com/redmic-project/docker/index-pages
-    PARENT_IMAGE_TAG: latest
+    PARENT_IMAGE_NAME: redmic/docker-index-pages
+    PARENT_IMAGE_TAG: v1.0.0
+    DOCKER_BUILD_ARGS: --build-arg PARENT_IMAGE_NAME=${PARENT_IMAGE_NAME} --build-arg PARENT_IMAGE_TAG=${PARENT_IMAGE_TAG}
+
+.deploy:
+  variables:
+    SSH_REMOTE: ${PRO_SSH_REMOTE}
+    STACK: index
+    SERVICES_TO_CHECK: index_${CI_PROJECT_NAME}
+    STATUS_CHECK_DELAY: 60
+    DD_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
+    DD_IMAGE_TAG: ${CI_COMMIT_SHA}
+    DD_PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
+  environment:
+    name: dev
+    url: https://index.${PRO_PUBLIC_HOSTNAME}
+
+deploy-support-branch-production:
+  extends: .deploy
   only:
     - branches
   except:
     - master
-  script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - >
-      docker build --build-arg PARENT_IMAGE_NAME=${PARENT_IMAGE_NAME} --build-arg PARENT_IMAGE_TAG=${PARENT_IMAGE_TAG}
-      -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}-latest .
-    - docker push ${CI_REGISTRY_IMAGE}
+    - schedules
 
-docker-build-stable:
-  stage: package
-  variables:
-    PARENT_IMAGE_NAME: registry.gitlab.com/redmic-project/docker/index-pages
-    PARENT_IMAGE_TAG: latest
+deploy-stable-branch-production:
+  extends: .deploy
   only:
     - master
-  script:
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - >
-      docker build --build-arg PARENT_IMAGE_NAME=${PARENT_IMAGE_NAME} --build-arg PARENT_IMAGE_TAG=${PARENT_IMAGE_TAG}
-      -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} -t ${CI_REGISTRY_IMAGE}:latest .
-    - docker push ${CI_REGISTRY_IMAGE}
-
-container-scanning:
-  stage: test-package
-  allow_failure: true
-  only:
-    - branches
-  script:
-    - docker run -d --name db arminc/clair-db:latest
-    - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.1
-    - apk add -U wget ca-certificates
-    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
-    - docker pull ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
-    - wget https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64
-    - mv clair-scanner_linux_amd64 clair-scanner
-    - chmod +x clair-scanner
-    - touch clair-whitelist.yml
-    - >
-      ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-sast-container-report.json -l clair.log
-      -w clair-whitelist.yml ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} || true
-  artifacts:
-    paths: [gl-sast-container-report.json]
-
-deploy-development:
-  stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
-  script:
-    - deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
-  environment:
-    name: pro
-    url: https://index.${PUBLIC_HOSTNAME}
-  only:
-    - branches
   except:
-    - master
-  when: manual
+    - schedules
 
-deploy-stable:
-  stage: deploy
-  image: registry.gitlab.com/redmic-project/docker/docker-deploy:latest
-  script:
-    - deploy.sh IMAGE_NAME=${IMAGE_NAME} IMAGE_TAG=${IMAGE_TAG} PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME}
-  environment:
-    name: pro
-    url: https://index.${PUBLIC_HOSTNAME}
+deploy-version-production:
+  extends: .deploy
   only:
-    - master
+    - tags

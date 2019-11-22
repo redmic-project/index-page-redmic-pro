@@ -2,34 +2,42 @@ version: '3.5'
 
 services:
   redmic-pro:
-    image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    image: ${IMAGE_NAME:-registry.gitlab.com/redmic-project/index-page/redmic-pro}:${IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+      args:
+        PARENT_IMAGE_NAME:
+        PARENT_IMAGE_TAG:
+    environment:
+      SITE_PORT:
+      SITE_PATH:
     networks:
-      - traefik-net
+      traefik-net:
     healthcheck:
-      test: wget --spider http://localhost:${SITE_PORT}
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 1m
+      test: wget --spider -q http://localhost:${SITE_PORT}
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-10}
+      start_period: ${HEALTHCHECK_START_PERIOD:-1m}
     deploy:
       mode: replicated
-      replicas: 1
-      labels:
-        traefik.frontend.rule: Host:${SITE_SUBDOMAIN}.${PUBLIC_HOSTNAME}
-        traefik.backend: ${SITE_NAME}
-        traefik.port: "${SITE_PORT}"
-      placement:
-        constraints:
-          - node.role == manager
+      replicas: ${REPLICAS:-1}
       restart_policy:
-        delay: 10s
-        window: 30s
+        delay: ${RESTART_DELAY:-3s}
+      update_config:
+        delay: ${UPDATE_DELAY:-1m}
+      labels:
+        traefik.frontend.rule: Host:${SITE_SUBDOMAIN:-index}.${PUBLIC_HOSTNAME}
+        traefik.backend: redmic-pro
+        traefik.port: '${SITE_PORT}'
       resources:
         limits:
-          cpus: '0.1'
-          memory: 64M
+          cpus: '${RESOURCES_LIMITS_CPUS:-0.1}'
+          memory: ${RESOURCES_LIMITS_MEMORY:-64M}
         reservations:
-          memory: 52M
+          cpus: '${RESOURCES_RESERVATIONS_CPUS:-0.001}'
+          memory: ${RESOURCES_RESERVATIONS_MEMORY:-20M}
 
 networks:
   traefik-net:
