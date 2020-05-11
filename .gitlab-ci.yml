@@ -10,12 +10,18 @@ include:
     file: '/deployment-custom-image.yml'
 
 stages:
+  - pre-package
   - package
-  - test-package
+  - post-package
   - deploy
 
 variables:
   PROJECT_PARENT_NAME: index
+  COMPOSE_NAME: docker-compose.yml
+
+.docker-build:
+  variables:
+    COMPOSE_FILE_NAME: ${COMPOSE_NAME}
 
 .deploy:
   variables:
@@ -27,7 +33,7 @@ variables:
 
 .deploy-compose-file:
   variables: &deploy-compose-file-variables
-    COMPOSE_FILE: docker-compose.yml
+    COMPOSE_FILE: ${COMPOSE_NAME}
 
 .deploy-development:
   variables:
