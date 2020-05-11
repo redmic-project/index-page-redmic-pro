@@ -4,48 +4,45 @@ include:
     file: '/packaging.yml'
   - project: 'redmic-project/gitlab-ci-templates'
     ref: master
-    file: '/_deployment.yml'
+    file: '/deployment.yml'
+  - project: 'redmic-project/gitlab-ci-templates'
+    ref: master
+    file: '/deployment-custom-image.yml'
 
 stages:
+  - pre-package
   - package
-  - test-package
+  - post-package
   - deploy
 
-.docker-operations-build:
+variables:
+  PROJECT_PARENT_NAME: index
+  COMPOSE_NAME: docker-compose.yml
+
+.docker-build:
   variables:
-    PARENT_IMAGE_NAME: redmic/docker-index-pages
-    PARENT_IMAGE_TAG: v1.0.0
-    DOCKER_BUILD_ARGS: --build-arg PARENT_IMAGE_NAME=${PARENT_IMAGE_NAME} --build-arg PARENT_IMAGE_TAG=${PARENT_IMAGE_TAG}
+    COMPOSE_FILE_NAME: ${COMPOSE_NAME}
 
 .deploy:
   variables:
-    SSH_REMOTE: ${PRO_SSH_REMOTE}
-    STACK: index
-    SERVICES_TO_CHECK: index_${CI_PROJECT_NAME}
+    STACK: ${PROJECT_PARENT_NAME}
+    SERVICES_TO_CHECK: ${PROJECT_PARENT_NAME}_${CI_PROJECT_NAME}
     STATUS_CHECK_DELAY: 60
-    DD_IMAGE_NAME: ${CI_REGISTRY_IMAGE}
-    DD_IMAGE_TAG: ${CI_COMMIT_SHA}
-    DD_PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
   environment:
-    name: pro
-    url: https://index.${PRO_PUBLIC_HOSTNAME}
+    url: https://${PROJECT_PARENT_NAME}.${PUBLIC_HOSTNAME}
 
-deploy-support-branch-production:
-  extends: .deploy
-  only:
-    - branches
-  except:
-    - master
-    - schedules
+.deploy-compose-file:
+  variables: &deploy-compose-file-variables
+    COMPOSE_FILE: ${COMPOSE_NAME}
 
-deploy-stable-branch-production:
-  extends: .deploy
-  only:
-    - master
-  except:
-    - schedules
+.deploy-development:
+  variables:
+    SSH_REMOTE: ${PRO_SSH_REMOTE}
+    SSH_PORT: ${PRO_SSH_PORT}
+    PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
+    DD_PUBLIC_HOSTNAME: ${PRO_PUBLIC_HOSTNAME}
+    <<: *deploy-compose-file-variables
 
-deploy-version-production:
-  extends: .deploy
-  only:
-    - tags
+.deploy-production:
+  variables:
+    <<: *deploy-compose-file-variables
