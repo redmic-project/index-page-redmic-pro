@@ -59,9 +59,9 @@ var config = {
 		"title": "Alertmanager",
 		"description": "Gestor de alertas generadas a partir de métricas recopiladas por Prometheus"
 	},{
-		"subdomain": "unsee",
+		"subdomain": "karma",
 		"img": "fire.png",
-		"title": "Unsee",
+		"title": "Karma",
 		"description": "Dashboard de visualización de alertas generadas por Alertmanager"
 	},{
 		"subdomain": "atlas-admin",
@@ -98,5 +98,10 @@ var config = {
 		"img": "vernemq.png",
 		"title": "VerneMQ",
 		"description": "Dashboard de estado del broker MQTT"
+	}, {
+		"subdomain": "phpldapadmin",
+		"img": "phpldapadmin.jpg",
+		"title": "phpLDAPadmin",
+		"description": "Herramienta para la administración de servidores LDAP"
 	}]
 };
