@@ -36,8 +36,13 @@ var config = {
 	},{
 		"subdomain": "kafkamanager",
 		"img": "kafka-manager.png",
-		"title": "Kafka Manager",
-		"description": "Gestor de brokers y topics de Kafka"
+		"title": "CMAK",
+		"description": "Gestor de brokers, topics y consumers de Kafka"
+	},{
+		"subdomain": "kowl",
+		"img": "kowl.jpg",
+		"title": "Kowl",
+		"description": "Gestor detallado del entorno Kafka"
 	},{
 		"subdomain": "prometheus",
 		"img": "prometheus.svg",
@@ -64,7 +69,7 @@ var config = {
 		"title": "Karma",
 		"description": "Dashboard de visualización de alertas generadas por Alertmanager"
 	},{
-		"subdomain": "atlas-admin",
+		"subdomain": "atlas",
 		"img": "geoserver.png",
 		"title": "Atlas",
 		"description": "Gestor de GeoServer, servidor de datos GIS"
