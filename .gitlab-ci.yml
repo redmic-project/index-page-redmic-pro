@@ -16,7 +16,6 @@ stages:
   - deploy
 
 variables:
-  PROJECT_PARENT_NAME: index
   COMPOSE_NAME: docker-compose.yml
 
 .docker-build:
@@ -25,11 +24,8 @@ variables:
 
 .deploy:
   variables:
-    STACK: ${PROJECT_PARENT_NAME}
-    SERVICES_TO_CHECK: ${PROJECT_PARENT_NAME}_${CI_PROJECT_NAME}
+    STACK: index
     STATUS_CHECK_DELAY: 60
-  environment:
-    url: https://${PROJECT_PARENT_NAME}.${PUBLIC_HOSTNAME}
 
 .deploy-compose-file:
   variables: &deploy-compose-file-variables
